@@ -8,17 +8,9 @@ import express, {
 } from "express";
 import httpStatus from "http-status";
 import config from "./app/config";
-import { getBkashIdToken } from "./app/lib/bkash";
 import { globalErrorHandler } from "./app/middleware/globalErrorHandler";
 import { notFound } from "./app/middleware/notFound";
-import { AnalyticsRoutes } from "./app/module/analytics/analytics.route";
-import { AppointementRoutes } from "./app/module/appointment/appointment.route";
 import { AuthRoutes } from "./app/module/auth/auth.route";
-import { DoctorRoutes } from "./app/module/doctor/doctor.route";
-import { PaymentRoutes } from "./app/module/payment/payment.route";
-import { PrescriptionRoutes } from "./app/module/prescription/prescription.route";
-import { ScheduleRoutes } from "./app/module/schedule/schedule.route";
-import { UserRoutes } from "./app/module/user/user.route";
 
 const app: Application = express();
 
@@ -37,20 +29,9 @@ app.use(express.json());
 app.use(cookieParser());
 
 app.use("/api/v1/auth", AuthRoutes);
-app.use("/api/v1/user", UserRoutes);
-app.use("/api/v1/appointment", AppointementRoutes);
-app.use("/api/v1/doctor", DoctorRoutes);
-app.use("/api/v1/schedule", ScheduleRoutes);
-app.use("/api/v1/payment", PaymentRoutes);
-app.use("/api/v1/prescription", PrescriptionRoutes);
-app.use("/api/v1/analytics", AnalyticsRoutes);
 
 app.get("/test", async (req: Request, res: Response, next: NextFunction) => {
 	try {
-		const grantIdTokenResult = await getBkashIdToken();
-
-		console.log(grantIdTokenResult);
-
 		res.status(httpStatus.OK).json({
 			success: true,
 			message: "Welcome to PH Healthcare System Backend",
