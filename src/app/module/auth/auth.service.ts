@@ -20,73 +20,95 @@ import type {
 import { prisma } from "../../lib/prisma";
 import { googleClient } from "../../lib/googleAuth";
 
+
 const registerPatient = async (payload: IRegisterPatientPayload) => {
-	const { name, password } = payload;
+  const { name, email, password } = payload;
 
-	if (
-		typeof name !== "string" ||
-		typeof payload.email !== "string" ||
-		typeof password !== "string"
-	) {
-		throw new AppError(
-			httpStatus.BAD_REQUEST,
-			"Name, email, and password are required",
-		);
-	}
+  if (
+    typeof name !== "string" ||
+    typeof email !== "string" ||
+    typeof password !== "string"
+  ) {
+    throw new AppError(
+      httpStatus.BAD_REQUEST,
+      "Name, email, and password are required"
+    );
+  }
 
-	const email = payload.email.trim().toLowerCase();
-	const normalizedName = name.trim();
+  const normalizedName = name.trim();
+  const normalizedEmail = email.trim().toLowerCase();
 
-	if (!normalizedName || !email || !password) {
-		throw new AppError(
-			httpStatus.BAD_REQUEST,
-			"Name, email, and password cannot be empty",
-		);
-	}
+  if (normalizedName.length < 3) {
+    throw new AppError(
+      httpStatus.BAD_REQUEST,
+      "Name must be at least 3 characters"
+    );
+  }
 
-	const isUserExists = await prisma.user.findUnique({
-		where: { email },
-	});
+  const existingUser = await prisma.user.findUnique({
+    where: { email: normalizedEmail },
+  });
 
-	if (isUserExists) {
-		throw new AppError(
-			httpStatus.CONFLICT,
-			"User with this email already exists",
-		);
-	}
+  if (existingUser) {
+    throw new AppError(
+      httpStatus.CONFLICT,
+      "User with this email already exists"
+    );
+  }
 
-	const hashedPassword = await bcrypt.hash(password, 8);
+  const hashedPassword = await bcrypt.hash(password, 8);
 
-	const result = await prisma.$transaction(async (tx: any) => {
-		const user = await tx.user.create({
-			data: {
-				name: normalizedName,
-				email,
-				password: hashedPassword,
-				role: "PATIENT",
-			},
-		});
+  const result = await prisma.$transaction(async (tx) => {
+    const user = await tx.user.create({
+      data: {
+        name: normalizedName,
+        email: normalizedEmail,
+        password: hashedPassword,
+        role: "PATIENT",
+      },
+    });
 
-		const patient = await tx.patient.create({
-			data: {
-				userId: user.id,
-				name: normalizedName,
-				email: email,
-			},
-		});
+    const patient = await tx.patient.create({
+      data: {
+        userId: user.id,
+        name: normalizedName,
+        email: normalizedEmail,
+      },
+    });
 
-		return { user, patient };
-	});
+    return { user, patient };
+  });
 
-	return {
-		message: "Patient registered successfully",
-		data: {
-			id: result.user.id,
-			name: result.user.name,
-			email: result.user.email,
-			patient: result.patient,
-		},
-	};
+ // Generate JWT Tokens
+const jwtPayload = {
+  userId: result.user.id,
+  email: result.user.email,
+  role: result.user.role,
+};
+
+const accessToken = jwtUtils.createToken(
+  jwtPayload,
+  config.jwt_access_secret as string,
+  "1d" as SignOptions
+);
+
+const refreshToken = jwtUtils.createToken(
+  jwtPayload,
+  config.jwt_refresh_secret as string,
+  "7d" as SignOptions
+);
+
+return {
+  accessToken,
+  refreshToken,
+  user: {
+    id: result.user.id,
+    name: result.user.name,
+    email: result.user.email,
+    role: result.user.role,
+  },
+  patient: result.patient,
+};
 };
 
 const loginUser = async (payload: ILoginUserPayload) => {

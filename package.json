@@ -37,7 +37,7 @@
         "pdfkit": "^0.20.1",
         "pg": "^8.22.0",
         "redis": "^6.2.0",
-        "zod": "^4.4.3"
+        "zod": "^4.6.7"
     },
     "devDependencies": {
         "@biomejs/biome": "2.5.7",
