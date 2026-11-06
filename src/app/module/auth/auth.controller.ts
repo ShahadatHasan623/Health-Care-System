@@ -1,3 +1,4 @@
+import { Payload } from './../../../generated/prisma/internal/prismaNamespace';
 import type { Request, Response } from "express";
 import httpStatus from "http-status";
 import { AppError } from "../../utils/AppError";
@@ -7,21 +8,21 @@ import type { IRequestUser } from "./auth.interface";
 import { AuthService } from "./auth.service";
 import config from "../../config";
 import z from "zod";
-import {patientValidation } from "./auth.validation";
+
 
 
 
 const registerPatient = catchAsync(async (req: Request, res: Response) => {
   // const payload = PatientValidation.PatientRegistrationZodSchema.safeParse(req.body);
-  const payload = patientValidation.PatientRegistrationZodSchema.safeParse(req.body);
-  if (!payload.success) {
+  // const payload = patientValidation.PatientRegistrationZodSchema.safeParse(req.body);
+  // if (!payload.success) {
     
-    throw new Error(payload.error.issues[0].message);
-  }
+  //   throw new Error(payload.error.issues[0].message);
+  // }
 
   // console.log(payload);
-
-  const result = await AuthService.registerPatient(payload.data as any);
+  const payload = req.body
+  const result = await AuthService.registerPatient(payload);
 
   const { accessToken,refreshToken, user, patient } = result;
 
