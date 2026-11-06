@@ -66,7 +66,11 @@ export const seedTesterAdmin = async () => {
     const name = config.tester_admin_name;
     const email = config.tester_admin_email;
     const password = config.tester_admin_password;
-
+    if (!name || !email || !password) {
+      console.log(
+        "Tester Admin credentials are not set in the environment variables"
+      );
+    }
     const hashedPassword = await bcrypt.hash(
       password,
       Number(config.bcrypt_salt_rounds)
@@ -83,8 +87,8 @@ export const seedTesterAdmin = async () => {
     });
     console.log("Tester Admin Creadted :", testerAdmin);
   } catch (error) {
-   console.log("Error creating tester admin:", error);
-   await prisma.user.delete({
+    console.log("Error creating tester admin:", error);
+    await prisma.user.delete({
       where: {
         email: config.tester_admin_email,
       },
@@ -92,3 +96,43 @@ export const seedTesterAdmin = async () => {
   }
 };
 //create tester doctor
+export const seedTesterDoctor = async () => {
+  try {
+    const isTesterDoctorExist = await prisma.user.findUnique({
+      where: {
+        email: config.tester_doctor_email,
+      },
+    });
+    if (isTesterDoctorExist) {
+      console.log("Tester Doctor already exists");
+      return;
+    }
+
+    const name = config.tester_doctor_name;
+    const email = config.tester_doctor_email;
+    const password = config.tester_doctor_password;
+
+    const hashedPassword = await bcrypt.hash(
+      password,
+      Number(config.bcrypt_salt_rounds)
+    );
+    const testerDoctor = await prisma.user.create({
+      data: {
+        name,
+        email,
+        password: hashedPassword,
+        role: Role.DOCTOR,
+        needPasswordChange: false,
+        emailVerified: true,
+      },
+    });
+    console.log("Tester Doctor Created :", testerDoctor);
+  } catch (error) {
+   console.log("Error creating tester doctor:", error);
+   await prisma.user.delete({
+      where:{
+         email:config.tester_doctor_email
+      }
+   })
+  }
+};
