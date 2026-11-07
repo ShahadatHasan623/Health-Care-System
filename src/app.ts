@@ -13,6 +13,8 @@ import { globalErrorHandler } from "./app/middleware/globalErrorHandler";
 import { notFound } from "./app/middleware/notFound";
 import { AuthRoutes } from "./app/module/auth/auth.route";
 import { success, z } from "zod";
+import { redisClient } from './app/lib/redis';
+import crypto from "crypto";
 
 const app: Application = express();
 
@@ -31,21 +33,20 @@ app.use(express.json());
 app.use(cookieParser());
 
 app.use("/api/v1/auth", AuthRoutes);
-app.post("/zod",async(req:Request,res:Response,next:NextFunction)=>{
+app.get("/test",async(req:Request,res:Response,next:NextFunction)=>{
 	try {
-		const UserZodSchema =z.object({
-			name:z.string,
-			age:z.number().optional(),
-			isVerified:z.boolean().optional(),
-			book:z.array(z.string()).optional()
-			
-		});
-		const payload =req.body;
-		const result =UserZodSchema.parse(payload)
+		// await redisClient.set("patient1@gmail.com","123456",{
+		// 	expiration:{
+		// 		type:"EX",
+		// 		value:60
+		// 	}
+		// })
+
+		const otp =crypto.randomInt(100000, 999999)
 		res.status(httpStatus.OK).json({
 			success:true,
 			message:"Welcome to PH Healthcare system backend",
-			data:result
+			data:otp
 		})
 
 	} catch (error) {
