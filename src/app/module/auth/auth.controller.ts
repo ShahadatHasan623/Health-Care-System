@@ -1,4 +1,4 @@
-import { Payload } from './../../../generated/prisma/internal/prismaNamespace';
+import { Payload } from "./../../../generated/prisma/internal/prismaNamespace";
 import type { Request, Response } from "express";
 import httpStatus from "http-status";
 import { AppError } from "../../utils/AppError";
@@ -9,22 +9,19 @@ import { AuthService } from "./auth.service";
 import config from "../../config";
 import z from "zod";
 
-
-
-
 const registerPatient = catchAsync(async (req: Request, res: Response) => {
   // const payload = PatientValidation.PatientRegistrationZodSchema.safeParse(req.body);
   // const payload = patientValidation.PatientRegistrationZodSchema.safeParse(req.body);
   // if (!payload.success) {
-    
+
   //   throw new Error(payload.error.issues[0].message);
   // }
 
   // console.log(payload);
-  const payload = req.body
+  const payload = req.body;
   const result = await AuthService.registerPatient(payload);
 
-  const { accessToken,refreshToken, user, patient } = result;
+  const { accessToken, refreshToken, user, patient } = result;
 
   res.cookie("accessToken", accessToken, {
     httpOnly: true,
@@ -155,23 +152,20 @@ const googleLogin = catchAsync(async (req: Request, res: Response) => {
 });
 const forgotPassword = catchAsync(async (req: Request, res: Response) => {
   const payload = req.body;
-  const result = await AuthService.forgotPassword(payload);
+  await AuthService.forgotPassword(payload);
 
 
-  
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
-    message: "New tokens generated successfully",
-    data:result,
+    message: `OTP sent to ${payload.email} successfully`,
+    data: null,
   });
 });
-const  resetPassword= catchAsync(async (req: Request, res: Response) => {
+const resetPassword = catchAsync(async (req: Request, res: Response) => {
   const payload = req.body;
   const result = await AuthService.resetPassword(payload);
 
-
-  
   sendResponse(res, {
     statusCode: httpStatus.OK,
     success: true,
@@ -187,5 +181,5 @@ export const AuthController = {
   refreshToken,
   googleLogin,
   forgotPassword,
-  resetPassword
+  resetPassword,
 };
